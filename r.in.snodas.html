@@ -1,0 +1,135 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.in.snodas</em> downloads daily NOAA Snow Data Assimilation System
+(<a href="https://nsidc.org/data/g02158">SNODAS</a>) rasters and imports
+them into GRASS GIS.
+
+<p>
+SNODAS provides spatially continuous estimates of snow water equivalent (SWE)
+and snow depth across the contiguous United States (CONUS) at approximately
+1 km resolution, available from 2003-10-01 to near-present. Data are derived
+from a physically based land surface model that assimilates satellite,
+airborne, and ground observations (including SNOTEL stations).
+No authentication is required; data are fetched directly from NOAA over HTTPS.
+</p>
+
+<p>
+Each day's data is imported as one or two FCELL raster maps, named
+<tt>&lt;output&gt;_swe_YYYYMMDD</tt> and/or
+<tt>&lt;output&gt;_depth_YYYYMMDD</tt>, automatically reprojected and clipped
+to the current GRASS computational region via <em>r.import</em>.
+</p>
+
+<h2>NOTES</h2>
+
+<h3>Variables</h3>
+
+<table>
+  <tr>
+    <th>variable=</th><th>Description</th><th>Units</th>
+  </tr>
+  <tr>
+    <td>swe</td>
+    <td>Snow water equivalent</td>
+    <td>mm</td>
+  </tr>
+  <tr>
+    <td>depth</td>
+    <td>Snow depth</td>
+    <td>mm</td>
+  </tr>
+</table>
+
+<p>
+Both variables may be requested in a single run with <b>variable=swe,depth</b>.
+</p>
+
+<h3>Data source and coverage</h3>
+
+<p>
+SNODAS masked product (CONUS only):
+</p>
+<ul>
+  <li>Spatial coverage: contiguous United States</li>
+  <li>Native resolution: ~1 km (~30 arcseconds), geographic WGS84</li>
+  <li>Temporal coverage: 2003-10-01 to near-present</li>
+  <li>Update latency: ~1 day</li>
+  <li>Grid: 6935 columns × 3351 rows</li>
+</ul>
+
+<p>
+Regions outside CONUS will produce empty rasters. For Alaska, Canada, or
+global snow cover, consider MODIS or ERA5 snow products.
+</p>
+
+<h3>Units</h3>
+
+<p>
+SNODAS raw values are stored in tenths of millimetres (scale factor 0.001 m).
+<em>r.in.snodas</em> converts to millimetres on import.
+</p>
+
+<h3>Relationship to SNOTEL</h3>
+
+<p>
+SNODAS is a gridded model product that assimilates SNOTEL station observations
+(among other sources) to produce spatially continuous snow fields. For actual
+observed station time series from the SNOTEL network, use
+<em><a href="v.in.snotel.html">v.in.snotel</a></em>. SNODAS and SNOTEL are
+complementary: SNOTEL provides point ground truth; SNODAS provides spatial
+coverage.
+</p>
+
+<h3>Space-time raster datasets</h3>
+
+<p>
+Use the <b>-t</b> flag to register imported maps as GRASS space-time raster
+datasets (<em>strds</em>). A separate strds is created for each variable:
+<tt>&lt;output&gt;_swe</tt> and <tt>&lt;output&gt;_depth</tt>.
+</p>
+
+<h2>EXAMPLES</h2>
+
+Import daily SWE for water year 2020 and register as strds:
+<div class="code"><pre>
+r.in.snodas output=snow variable=swe start=2019-10-01 end=2020-09-30 -t
+</pre></div>
+
+Import both SWE and snow depth for a single date:
+<div class="code"><pre>
+r.in.snodas output=snow variable=swe,depth start=2020-04-01 end=2020-04-01
+</pre></div>
+
+Compute snow cover area (fraction of region with SWE &gt; 0):
+<div class="code"><pre>
+r.mapcalc "snow_cover_20200401 = if(snow_swe_20200401 > 0, 1, 0)"
+r.univar snow_cover_20200401
+</pre></div>
+
+<h2>REQUIREMENTS</h2>
+
+<ul>
+  <li>Python packages: <tt>requests</tt>, <tt>numpy</tt></li>
+  <li>GDAL CLI tools (<tt>gdal_translate</tt>) — typically installed with GRASS</li>
+</ul>
+
+<h2>REFERENCES</h2>
+
+Carroll, T., Cline, D., Fall, G., Nilsson, A., Li, L., Rost, A. (2001):
+NOHRSC operations and the simulation of snow cover properties for the
+conterminous US.
+<em>Proceedings of the 69th Annual Meeting of the Western Snow Conference</em>,
+Sun Valley, Idaho, pp. 1–14.
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.in.snotel.html">v.in.snotel</a>,
+<a href="r.in.gridmet.html">r.in.gridmet</a>,
+<a href="r.import.html">r.import</a>,
+<a href="t.create.html">t.create</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Andrew Wickert
