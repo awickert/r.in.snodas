@@ -73,6 +73,9 @@ import requests
 
 import grass.script as gs
 
+if os.path.exists('/usr/share/proj/proj.db'):
+    os.environ['PROJ_DATA'] = '/usr/share/proj'
+
 # ---------------------------------------------------------------------------
 # SNODAS masked product constants
 # ---------------------------------------------------------------------------
